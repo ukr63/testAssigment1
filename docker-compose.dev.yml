@@ -22,6 +22,7 @@ services:
     environment:
       - PHP_IDE_CONFIG="serverName=symfony.local"
       - PHP_IDE_CONFIG=serverName=symfony.local
+      - AUTH_TOKEN=ba67df6a-a17c-476f-8e95-bcdb75ed3958
       - APP_DEBUG=1
     volumes:
       - './symfony:/var/www/html'
