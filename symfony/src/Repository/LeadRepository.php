@@ -16,6 +16,16 @@ class LeadRepository extends ServiceEntityRepository
         parent::__construct($registry, Lead::class);
     }
 
+    public function save(Lead $lead, bool $flush = true): void
+    {
+        $entityManager = $this->getEntityManager();
+        $entityManager->persist($lead);
+
+        if ($flush) {
+            $entityManager->flush();
+        }
+    }
+
     //    /**
     //     * @return Lead[] Returns an array of Lead objects
     //     */

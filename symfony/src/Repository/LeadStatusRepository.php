@@ -16,6 +16,16 @@ class LeadStatusRepository extends ServiceEntityRepository
         parent::__construct($registry, LeadStatus::class);
     }
 
+    public function save(LeadStatus $leadStatus, bool $flush = true): void
+    {
+        $entityManager = $this->getEntityManager();
+        $entityManager->persist($leadStatus);
+
+        if ($flush) {
+            $entityManager->flush();
+        }
+    }
+
     //    /**
     //     * @return LeadStatus[] Returns an array of LeadStatus objects
     //     */

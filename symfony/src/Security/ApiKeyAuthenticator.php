@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 
 class ApiKeyAuthenticator extends AbstractAuthenticator
 {
-    protected const HEADER_AUTH_TOKEN = 'Authorization';
+    protected const HEADER_AUTH_TOKEN = 'token';
 
     /**
      * @inheritDoc
@@ -38,8 +38,6 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
                 '{{ header }}' => self::HEADER_AUTH_TOKEN,
             ]);
         }
-
-        $apiToken = trim(str_replace('Bearer ', '', $apiToken));
 
         if ($_ENV['AUTH_TOKEN'] !== $apiToken) {
             throw new CustomUserMessageAuthenticationException('Invalid auth token');

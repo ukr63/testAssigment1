@@ -76,6 +76,7 @@ class Lead
     public function __construct()
     {
         $this->leadStatuses = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -220,7 +221,7 @@ class Lead
         return $this->click_id;
     }
 
-    public function setClickId(string $click_id): static
+    public function setClickId(?string $click_id): static
     {
         $this->click_id = $click_id;
 

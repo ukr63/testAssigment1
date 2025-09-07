@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <form>
+        <div class="form-group">
+            <label for="exampleInputFirstName">First Name</label>
+            <input name="first_name" type="text" class="form-control" id="exampleInputFirstName" placeholder="First Name">
+        </div>
+        <div class="form-group">
+            <label for="exampleInputLastName">Last Name</label>
+            <input name="last_name" type="text" class="form-control" id="exampleInputLastName" placeholder="Last Name">
+        </div>
+        <div class="form-group">
+            <label for="exampleInputPhone">Phone Number</label>
+            <input name="phone" type="text" class="form-control" id="exampleInputPhone" placeholder="Phone">
+        </div>
+        <div class="form-group">
+            <label for="exampleInputEmail">Email address</label>
+            <input name="email" type="email" class="form-control" id="exampleInputEmail" placeholder="Email">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('form');
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const firstName = form.querySelector('input[placeholder="First Name"]').value;
+                const lastName = form.querySelector('input[placeholder="Last Name"]').value;
+                const phone = form.querySelector('input[placeholder="Phone"]').value;
+                const email = form.querySelector('input[placeholder="Email"]').value;
+
+                const data = {
+                    first_name: firstName,
+                    last_name: lastName,
+                    phone: phone,
+                    email: email,
+                    landing_url: window.location.href,
+                };
+
+                try {
+                    const response = await fetch('/api/v1/addlead', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'token': 'ba67df6a-a17c-476f-8e95-bcdb75ed3958'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+
+                        window.location.href = result.autologin;
+                    } else {
+                        const errorData = await response.json();
+                        alert('Validation failed: ' + JSON.stringify(errorData.errors));
+                    }
+                } catch (error) {
+                    console.error('Error sending JSON:', error);
+                    alert('An unexpected error occurred.');
+                }
+            });
+        });
+    </script>
+{% endblock %}
