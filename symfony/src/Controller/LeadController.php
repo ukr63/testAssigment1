@@ -98,8 +98,9 @@ final class LeadController extends AbstractController
 
         try {
             $query = $entityManager->createQuery(
-                'SELECT l.id, l.ftd, l.status, l.created_at
+                'SELECT l.id, l.ftd, l.status, l.created_at, lead.email
              FROM App\Entity\LeadStatus l
+             INNER JOIN App\Entity\Lead lead WITH l.lead = lead.id
              WHERE l.created_at BETWEEN :dateFrom AND :dateTo
              ORDER BY l.created_at ASC'
             )
