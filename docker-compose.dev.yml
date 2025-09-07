@@ -1,0 +1,40 @@
+version: '3'
+
+networks:
+  backend:
+    driver: bridge
+
+services:
+  symfony-nginx:
+    build:
+      context: .docker/symfony_nginx
+    volumes:
+      - './symfony:/var/www/html'
+    restart: always
+    ports:
+      - "8089:80"
+    networks:
+      - backend
+
+  symfony:
+    build:
+      context: .docker/symfony
+    environment:
+      - PHP_IDE_CONFIG="serverName=symfony.local"
+      - PHP_IDE_CONFIG=serverName=symfony.local
+      - APP_DEBUG=1
+    volumes:
+      - './symfony:/var/www/html'
+      - './.docker/symfony/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini'
+      - './.docker/symfony/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini'
+      - './.docker/symfony/php.ini:/usr/local/etc/php/conf.d/php.ini'
+    restart: always
+    ports:
+      - 9000:9000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - backend
+
+volumes:
+  code:
