@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Lead Statuses</h1>
+
+        <!-- Filter Form -->
+        <form id="filterForm" class="row g-3 mb-3">
+            <div class="col-md-5">
+                <label for="date_from" class="form-label">Date From</label>
+                <input type="datetime-local" id="date_from" class="form-control" name="date_from">
+            </div>
+            <div class="col-md-5">
+                <label for="date_to" class="form-label">Date To</label>
+                <input type="datetime-local" id="date_to" class="form-control" name="date_to">
+            </div>
+            <div class="col-md-2 align-self-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+
+        <!-- Data Grid -->
+        <table class="table table-hover">
+            <thead class="table-light">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created At</th>
+                <th scope="col">FTD</th>
+            </tr>
+            </thead>
+            <tbody id="dataGrid">
+            <tr>
+                <td colspan="4" class="text-center">No data available</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fetch data from API and populate the grid
+        async function fetchStatuses(filters = {}) {
+            const apiUrl = '/api/v1/getstatuses';
+            const requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', token: 'ba67df6a-a17c-476f-8e95-bcdb75ed3958' },
+                body: JSON.stringify(filters)
+            };
+
+            try {
+                const response = await fetch(apiUrl, requestOptions);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data.');
+                }
+
+                const result = await response.json();
+                updateGrid(result.data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Failed to fetch data. Please try again later.');
+            }
+        }
+
+        // Update the table grid with fetched data
+        function updateGrid(data) {
+            const dataGrid = document.getElementById('dataGrid');
+            dataGrid.innerHTML = '';
+
+            if (data.length === 0) {
+                dataGrid.innerHTML = '<tr><td colspan="4" class="text-center">No data found for the selected dates.</td></tr>';
+                return;
+            }
+
+            data.forEach(item => {
+                const row = `
+                    <tr>
+                        <td>${item.id}</td>
+                        <td>${item.status}</td>
+                        <td>${new Date(item.created_at.date).toLocaleString()}</td>
+                        <td>${item.ftd ? 'Yes' : 'No'}</td>
+                    </tr>
+                `;
+                dataGrid.innerHTML += row;
+            });
+        }
+
+        // Handle filter form submission
+        document.getElementById('filterForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const dateFrom = document.getElementById('date_from').value;
+            const dateTo = document.getElementById('date_to').value;
+
+            const filters = {};
+            if (dateFrom) filters.date_from = new Date(dateFrom).toISOString();
+            if (dateTo) filters.date_to = new Date(dateTo).toISOString();
+
+            fetchStatuses(filters);
+        });
+
+        // Initial fetch to populate data on load
+        fetchStatuses();
+    </script>
+
+{% endblock %}

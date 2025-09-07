@@ -24,6 +24,14 @@ class LeadStatus
     #[ORM\Column]
     private ?bool $ftd = null;
 
+    #[ORM\Column(type: "datetime", options: ["default" => "CURRENT_TIMESTAMP"])]
+    private \DateTimeImmutable $created_at;
+
+    public function __construct()
+    {
+        $this->created_at = new \DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;

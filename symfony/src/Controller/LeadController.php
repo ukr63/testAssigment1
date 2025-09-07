@@ -10,6 +10,7 @@ use App\Repository\LeadRepository;
 use App\Repository\LeadStatusRepository;
 use App\Validator\Lead as LeadValidator;
 use App\Validator\ValidationException;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,7 +38,7 @@ final class LeadController extends AbstractController
         try {
             $data = json_decode($request->getContent(), true);
             $leadValidator->validate($data);
-            // $previousUrl = $request->headers->get('referer');
+            $previousUrl = $request->headers->get('referer', '');
             $lead = new Lead();
             $lead->setIp($request->getClientIp());
             $lead->setEmail($data['email']);
@@ -48,7 +49,7 @@ final class LeadController extends AbstractController
             );
             $lead->setFirstName($data['first_name']);
             $lead->setLastName($data['last_name']);
-            $lead->setLandingUrl($data['landing_url']);
+            $lead->setLandingUrl($previousUrl);
             $lead->setOfferId(5);
             $lead->setPassword('qwerty12');
             $lead->setCountryCode('GB');
@@ -83,9 +84,51 @@ final class LeadController extends AbstractController
     }
 
     #[Route('/api/v1/getstatuses', name: 'getstatuses', methods: ['POST'])]
-    public function getStatuses(Request $request): JsonResponse
+    public function getStatuses(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        return $this->json([]);
+        $data = json_decode($request->getContent(), true);
+
+        $dateFrom = $data['date_from'] ?? (new \DateTime('-30 days'))->format('Y-m-d H:i:s');
+        $dateTo = $data['date_to'] ?? (new \DateTime())->format('Y-m-d H:i:s');
+        $page = $data['page'] ?? 0;
+        $limit = $data['limit'] ?? 100;
+
+        $dateFromObj = new \DateTime($dateFrom);
+        $dateToObj = new \DateTime($dateTo);
+
+        try {
+            $query = $entityManager->createQuery(
+                'SELECT l.id, l.ftd, l.status, l.created_at
+             FROM App\Entity\LeadStatus l
+             WHERE l.created_at BETWEEN :dateFrom AND :dateTo
+             ORDER BY l.created_at ASC'
+            )
+                ->setParameter('dateFrom', $dateFromObj)
+                ->setParameter('dateTo', $dateToObj)
+                ->setFirstResult($page * $limit)
+                ->setMaxResults($limit);
+
+            $statuses = $query->getResult();
+
+            return $this->json([
+                'data' => $statuses,
+                'page' => $page,
+                'limit' => $limit,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'message' => 'An error occurred while fetching statuses',
+                'error' => $e->getMessage()
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/statuses', name: 'statuses')]
+    public function statuses(): Response
+    {
+        return $this->render('lead/statuses.html.twig');
     }
 
     #[Route('/api/test', name: 'app_lead')]
